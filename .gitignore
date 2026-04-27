@@ -1,0 +1,15 @@
+# Python environment
+__pycache__/
+*.py[cod]
+.env
+venv/
+
+# Terraform state and local files
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.terraform.lock.hcl
+
+# System files
+.DS_Store
+Thumbs.db
