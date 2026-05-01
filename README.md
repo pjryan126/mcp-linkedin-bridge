@@ -1,5 +1,5 @@
 # MCP - LinkedIn Bridge
-A MCP server deployed on Google Cloud Run to access LinkedIn data in Google Gemini using the Linkup.so API.
+A MCP server deployed on Google Cloud Run to access LinkedIn data in Google Gemini using the Linkup.so API
 
 ## Architecture
 - **Transport**: HTTP (FastAPI)
