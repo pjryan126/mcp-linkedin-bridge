@@ -37,23 +37,23 @@ async def mcp_handler(request: Request):
             }]}
         }
 
-        # Call tool
-        if method == "tools/call":
-            query = body["params"]["arguments"]["query"]
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.linkup.so/v1/search",
-                    headers={"Authorization": f"Bearer {LINKUP_API_KEY}"},
-                    json={
-                        "q": query,
-                        "depth": "standard",
-                        "includeDomains": ["linkedin.com"]
-                    }
-                )
-                data = response.json()
-                # Return the answer field from Linkup to Gemini
-                return {
-                    "jsonrpc": "2.0",
-                    "id": request_id,
-                    "result": {"content": [{"type": "text", "text": str(data.get("answer", "No results found."))}]}
+    # Call tool
+    if method == "tools/call":
+        query = body["params"]["arguments"]["query"]
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.linkup.so/v1/search",
+                headers={"Authorization": f"Bearer {LINKUP_API_KEY}"},
+                json={
+                    "q": query,
+                    "depth": "standard",
+                    "includeDomains": ["linkedin.com"]
                 }
+            )
+            data = response.json()
+            # Return the answer field from Linkup to Gemini
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {"content": [{"type": "text", "text": str(data.get("answer", "No results found."))}]}
+            }
