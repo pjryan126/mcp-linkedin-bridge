@@ -14,7 +14,7 @@ async def mcp_handler(request: Request):
     request_id = body.get("id")
     
     # Initialize through handshake between Gemini and server
-    if method == "tools/list":
+    if method == "initialize":
         return {
             "jsonrpc": "2.0",
             "id": request_id,
