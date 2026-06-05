@@ -1,8 +1,9 @@
-# LinkedIn MCP Bridge 🚀
+# LinkedIn MCP Bridge
 
 A serverless Model Context Protocol (MCP) server that connects developer AI clients (like Gemini CLI, Claude Desktop, or Cursor) to real-time LinkedIn professional data using the Linkup.so API and Google Cloud Run.
 
 ## Architecture Overview
+
 * **Application Layer:** Python FastAPI server implementing the Model Context Protocol lifecycle (`initialize`, `tools/list`, `tools/call`).
 * **Compute:** Google Cloud Run (Scales to zero, meaning idle costs are $0).
 * **Data Provider:** Linkup.so API (Agentic web search engine configured to return synthesized `sourcedAnswer` formats).
@@ -13,18 +14,21 @@ A serverless Model Context Protocol (MCP) server that connects developer AI clie
 ---
 
 ## Prerequisites
+
 Before deploying this stack, ensure you have the following installed and configured:
-* [Google Cloud CLI (`gcloud`)](https://cloud.google.com/sdk/docs/install)
-* [Terraform](https://developer.hashicorp.com/terraform/downloads)
-* [Docker](https://docs.docker.com/get-docker/)
+
+* Google Cloud CLI (`gcloud`)
+* Terraform
+* Docker
 * Git & a GitHub account
-* A [Linkup.so](https://linkup.so) API Key (The Free Tier offers ~1,000 requests/month)
+* A Linkup.so API Key (The Free Tier offers ~1,000 requests/month)
 
 ---
 
 ## Deployment Guide
 
 ### 1. Google Cloud Environment Setup
+
 Authenticate your local terminal and prepare your GCP project:
 
 ```bash
@@ -39,35 +43,42 @@ gcloud config set project YOUR_PROJECT_ID
 gcloud services enable run.googleapis.com \
     secretmanager.googleapis.com \
     iam.googleapis.com \
-    iamcredentials.googleapis.com
+    iamcredentials.googleapis.com \
+    artifactregistry.googleapis.com
 
 ```
 
+> **Troubleshooting ADC:** If Terraform later throws a "could not find default credentials" error, you may need to explicitly link your quota project by running: `gcloud auth application-default set-quota-project YOUR_PROJECT_ID`
+
 ### 2. Inject Secrets Securely
 
-Do not put your Linkup API key in the codebase. Inject it directly into GCP Secret Manager:
+Do not put your Linkup.so API key in the codebase. Inject it directly into GCP Secret Manager to create "Version 1" of the payload:
 
 ```bash
 echo -n "your_linkup_api_key_here" | gcloud secrets create linkup-api-key --data-file=-
 
 ```
 
-### 3. Deploy the Infrastructure
+### 3. Deploy the Infrastructure (Phase 1: State & Registry)
 
-Navigate to the infrastructure folder to provision your dedicated service account, Artifact Registry, and Cloud Run service.
+Before Terraform can deploy Cloud Run, it needs a place to store its state and a place for the Docker image to live.
 
 ```bash
-cd infrastructure/
+# Create the remote state bucket
+gcloud storage buckets create gs://YOUR_PROJECT_ID-terraform-state --location=us-central1
+
+# Navigate to the terraform directory and initialize
+cd terraform/
 terraform init
-terraform apply
+terraform apply -target=google_artifact_registry_repository.mcp_linkedin_bridge_repo
 
 ```
 
-*Note: This creates a least-privilege service account (`mcp-linkedin-bridge-runner`) strictly scoped to read the Secret Manager vault.*
+*Note: You cannot deploy the full `terraform apply` yet. Cloud Run will crash if the Docker image does not exist in the Artifact Registry. We will let GitHub Actions handle the final deployment.*
 
 ### 4. CI/CD Pipeline (GitHub Actions & Workload Identity Federation)
 
-This project uses keyless authentication. GitHub will securely deploy updates to GCP without relying on long-lived JSON keys.
+This project uses keyless authentication. GitHub will securely authenticate to GCP, build/push the Docker container, and run the final `terraform apply`.
 
 Run these commands locally, replacing `YOUR_PROJECT_ID`, `YOUR_PROJECT_NUMBER`, and `YOUR_GITHUB_USERNAME`:
 
@@ -88,21 +99,21 @@ gcloud iam workload-identity-pools providers create-oidc github-provider \
   --workload-identity-pool="github-actions-pool" \
   --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
   --attribute-condition="assertion.repository_owner == 'YOUR_GITHUB_USERNAME'" \
-  --issuer-uri="[https://token.actions.githubusercontent.com](https://token.actions.githubusercontent.com)"
+  --issuer-uri="https://token.actions.githubusercontent.com"
 
 # Bind permissions strictly to your specific repository
 gcloud iam service-accounts add-iam-policy-binding github-actions-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com \
   --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://[iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/YOUR_GITHUB_USERNAME/mcp-linkedin-bridge](https://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/YOUR_GITHUB_USERNAME/mcp-linkedin-bridge)"
+  --member="principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/YOUR_GITHUB_USERNAME/mcp-linkedin-bridge"
 
 # Grant permission to mint OAuth tokens for Docker registry pushes
 gcloud iam service-accounts add-iam-policy-binding github-actions-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com \
   --role="roles/iam.serviceAccountTokenCreator" \
-  --member="principalSet://[iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/YOUR_GITHUB_USERNAME/mcp-linkedin-bridge](https://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/YOUR_GITHUB_USERNAME/mcp-linkedin-bridge)"
+  --member="principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/YOUR_GITHUB_USERNAME/mcp-linkedin-bridge"
 
 ```
 
-Once executed, any push to the `main` branch will automatically trigger the `.github/workflows/deploy.yml` pipeline, rebuilding your Docker container and deploying the latest Git hash to Cloud Run.
+Once executed, push your code to the `main` branch. The `.github/workflows/deploy.yml` pipeline will automatically trigger, pushing your Docker container and deploying the latest Git hash to Cloud Run.
 
 ---
 
@@ -118,7 +129,7 @@ To connect this remote MCP server to your local Gemini CLI environment, add your
   "mcpServers": {
     "linkedin-bridge": {
       "type": "http",
-      "url": "[https://mcp-linkedin-bridge-xxxxxxx-uc.a.run.app/mcp](https://mcp-linkedin-bridge-xxxxxxx-uc.a.run.app/mcp)"
+      "url": "https://mcp-linkedin-bridge-xxxxxxx-uc.a.run.app/mcp"
     }
   }
 }
@@ -129,10 +140,6 @@ To connect this remote MCP server to your local Gemini CLI environment, add your
 
 ## Usage Example
 
-Once the setup is complete, prompt Gemini naturally in your chat interface:
+Once the setup is complete, prompt Gemini naturally in your chat interface using explicit prompt engineering:
 
 > *"Use the linkedin-bridge tool to search for current job postings on LinkedIn for roles equivalent to 'Vice President Data' or 'Head of Data' located in the New York City (NYC) metropolitan area. Extract a comprehensive, bulleted list detailing the Company Name, Job Title, and a one-sentence summary."*
-
-The AI will route the JSON-RPC payload to your Cloud Run server, await the web scrape from Linkup.so, and format the final output right in your terminal or IDE!
-
-```
