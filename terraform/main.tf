@@ -69,7 +69,7 @@ resource "google_cloud_run_service_iam_member" "public" {
 
 # 5. Create a dedicated single-purpose identity for MCP bridge
 resource "google_service_account" "mcp_runner" {
-    account_id = "mcp-linkein-bridge-runner"
+    account_id = "mcp-linkedin-bridge-runner"
     display_name = "MCP LinkedIn Bridge Execution SA"
 }
 
