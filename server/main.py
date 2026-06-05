@@ -40,13 +40,17 @@ async def mcp_handler(request: Request):
     # Call tool
     if method == "tools/call":
         query = body["params"]["arguments"]["query"]
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 "https://api.linkup.so/v1/search",
-                headers={"Authorization": f"Bearer {LINKUP_API_KEY}"},
+                headers={
+                    "Authorization": f"Bearer {LINKUP_API_KEY}",
+                    "Content-Type": "application/json"
+                    },
                 json={
                     "q": query,
                     "depth": "standard",
+                    "outputType": "sourcedAnswer",
                     "includeDomains": ["linkedin.com"]
                 }
             )
