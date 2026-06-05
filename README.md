@@ -127,7 +127,7 @@ To connect this remote MCP server to your local Gemini CLI environment, add your
 
 ---
 
-## 🤖 Usage Example
+## Usage Example
 
 Once the setup is complete, prompt Gemini naturally in your chat interface:
 
