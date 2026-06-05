@@ -27,7 +27,7 @@ resource "google_cloud_run_service" "mcp_bridge" {
     
     template {
         spec {
-            service_account_name = google_service_account.mcp_runner.emal
+            service_account_name = google_service_account.mcp_runner.email
             containers {
                 # This URL follows: {REGION}-docker.pkg.dev/{PROJECT}/{REPO}/{IMAGE}:{TAG}
                 image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.mcp_linkedin_bridge_repo.repository_id}/mcp-linkedin-bridge:latest"
