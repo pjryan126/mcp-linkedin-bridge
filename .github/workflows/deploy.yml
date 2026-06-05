@@ -60,4 +60,7 @@ jobs:
       
       - name: Terraform Apply
         working-directory: ./terraform
-        run: terraform apply --auto-approve -var="image_tag=${{ github.SHA }}"
+        run: |
+          terraform apply --auto-approve -input=false \
+            -var="image_tag=${{ github.SHA }}" \
+            -var="project_id=${{ env.PROJECT_ID }}"
