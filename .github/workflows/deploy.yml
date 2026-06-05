@@ -14,7 +14,7 @@ env:
   REPO_NAME: mcp-linkedin-bridge-repo
   IMAGE_NAME: mcp-linkedin-bridge
   WORKLOAD_IDENTITY_PROVIDER: "projects/571034539940/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider"
-  SERVICE_ACCOUNT: "github-actions-sa@mcp-linkedin-bridge.iam/gserviceaccount.com"
+  SERVICE_ACCOUNT: "github-actions-sa@mcp-linkedin-bridge.iam.gserviceaccount.com"
 
 jobs:
   build-and-deploy:
