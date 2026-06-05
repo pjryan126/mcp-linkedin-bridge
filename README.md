@@ -1,8 +1,3 @@
-Here is a comprehensive, professional `README.md` file that synthesizes the entire architecture, infrastructure commands, and CI/CD workflow you just built. You can drop this directly into the root of your repository.
-
----
-
-```markdown
 # LinkedIn MCP Bridge 🚀
 
 A serverless Model Context Protocol (MCP) server that connects developer AI clients (like Gemini CLI, Claude Desktop, or Cursor) to real-time LinkedIn professional data using the Linkup.so API and Google Cloud Run.
@@ -139,7 +134,5 @@ Once the setup is complete, prompt Gemini naturally in your chat interface:
 > *"Use the linkedin-bridge tool to search for current job postings on LinkedIn for roles equivalent to 'Vice President Data' or 'Head of Data' located in the New York City (NYC) metropolitan area. Extract a comprehensive, bulleted list detailing the Company Name, Job Title, and a one-sentence summary."*
 
 The AI will route the JSON-RPC payload to your Cloud Run server, await the web scrape from Linkup.so, and format the final output right in your terminal or IDE!
-
-```
 
 ```
