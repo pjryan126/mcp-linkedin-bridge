@@ -27,6 +27,7 @@ resource "google_cloud_run_service" "mcp_bridge" {
     
     template {
         spec {
+            service_account_name = google_service_account.mcp_runner.emal
             containers {
                 # This URL follows: {REGION}-docker.pkg.dev/{PROJECT}/{REPO}/{IMAGE}:{TAG}
                 image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.mcp_linkedin_bridge_repo.repository_id}/mcp-linkedin-bridge:latest"
@@ -58,3 +59,17 @@ resource "google_cloud_run_service_iam_member" "public" {
     role = "roles/run.invoker"
     member = "allUsers"
 }
+
+# 5. Create a dedicated single-purpose identity for MCP bridge
+resource "google_service_account" "mcp_runner" {
+    account_id = "mcp-linkein-bridge-runner"
+    display_name = "MCP LinkedIn Bridge Execution SA"
+}
+
+# 6. Grant ONLY this new identify permission to read the LinkUp secret
+resource "google_secret_manager_secret_iam_member" "cloud_run_secret_access" {
+    secret_id   = google_secret_manager_secret.linkup_api_key.id
+    role        = "roles/secretmanager.secretAccessor"
+    member      = "serviceAccount:${google_service_account.mcp_runner.email}"
+}
+
