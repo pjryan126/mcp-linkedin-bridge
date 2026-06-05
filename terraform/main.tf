@@ -31,13 +31,13 @@ resource "google_artifact_registry_repository" "mcp_linkedin_bridge_repo" {
 resource "google_cloud_run_service" "mcp_bridge" {
     name = "mcp-linkedin-bridge"
     location = var.region
-    image = "us-central1-docker.pkg.dev/${var.project_id}/mcp-linkedin-bridge-repo/mcp-linkedin-bridge:${var.image_tag}"
+    
     template {
         spec {
             service_account_name = google_service_account.mcp_runner.email
             containers {
                 # This URL follows: {REGION}-docker.pkg.dev/{PROJECT}/{REPO}/{IMAGE}:{TAG}
-                image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.mcp_linkedin_bridge_repo.repository_id}/mcp-linkedin-bridge:latest"
+                image = "us-central1-docker.pkg.dev/${var.project_id}/mcp-linkedin-bridge-repo/mcp-linkedin-bridge:${var.image_tag}"
                 
                 env {
                     name = "LINKUP_API_KEY"
