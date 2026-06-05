@@ -1,3 +1,10 @@
+terraform {
+    backend "gcs" {
+        bucket = "mcp-linkedin-bridge-tf-state"
+        prefix = "terraform/state"
+    }
+}
+
 provider "google" {
     project = var.project_id
     region = var.region
@@ -24,7 +31,7 @@ resource "google_artifact_registry_repository" "mcp_linkedin_bridge_repo" {
 resource "google_cloud_run_service" "mcp_bridge" {
     name = "mcp-linkedin-bridge"
     location = var.region
-    
+    image = "us-central1-docker.pkg.dev/${var.project_id}/mcp-linkedin-bridge-repo/mcp-linkedin-bridge:${var.image_tag}"
     template {
         spec {
             service_account_name = google_service_account.mcp_runner.email

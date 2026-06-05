@@ -1,0 +1,57 @@
+name: Deploy MCP Server to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**'
+      - 'terraform/**'
+      - '.github/workflows/**'
+env:
+  PROJECT_ID: mcp-linkedin-bridge
+  REGION: us-central1
+  REPO_NAME: mcp-linkedin-bridge-repo
+  IMAGE_NAME: mcp-linkedin-bridge
+  WORKLOAD_IDENTITY_PROVIDER: "projects/571034539940/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider"
+  SERVICE_ACCOUNT: "github-actions-sa@mcp-linkedin-bridge.iam/gserviceaccount.com"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Authenticate Docker to Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and Push Docker Container
+        run: |
+          # Tag the image with the unique GitHub commit SHA
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.SHA }} ./server
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.SHA }}
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: Terraform Init 
+        working-directory: ./terraform
+        run: terraform Init
+      
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply --auto-approve -var="image_tag=${{ github.SHA }}"

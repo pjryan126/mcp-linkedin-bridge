@@ -15,4 +15,9 @@ variable "service_name" {
     default = "mcp-linkedin-bridge"
 }
 
+variable "image_tag" {
+    description = "The Docker image tag to deploy (populated by CI/CD)"
+    type = string
+    default = "latest"
+}
 
