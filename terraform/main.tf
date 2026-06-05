@@ -22,7 +22,7 @@ resource "google_artifact_registry_repository" "mcp_linkedin_bridge_repo" {
 
 # 3. Cloud Run Service (The Serverless Compute)
 resource "google_cloud_run_service" "mcp_bridge" {
-    name = var.service_name
+    name = "mcp-linkedin-bridge"
     location = var.region
     
     template {
