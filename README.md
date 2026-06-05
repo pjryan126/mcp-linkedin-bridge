@@ -2,7 +2,7 @@
 
 A serverless Model Context Protocol (MCP) server that connects developer AI clients (like Gemini CLI, Claude Desktop, or Cursor) to real-time LinkedIn professional data using the Linkup.so API and Google Cloud Run.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 * **Application Layer:** Python FastAPI server implementing the Model Context Protocol lifecycle (`initialize`, `tools/list`, `tools/call`).
 * **Compute:** Google Cloud Run (Scales to zero, meaning idle costs are $0).
 * **Data Provider:** Linkup.so API (Agentic web search engine configured to return synthesized `sourcedAnswer` formats).
@@ -12,7 +12,7 @@ A serverless Model Context Protocol (MCP) server that connects developer AI clie
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 Before deploying this stack, ensure you have the following installed and configured:
 * [Google Cloud CLI (`gcloud`)](https://cloud.google.com/sdk/docs/install)
 * [Terraform](https://developer.hashicorp.com/terraform/downloads)
@@ -22,7 +22,7 @@ Before deploying this stack, ensure you have the following installed and configu
 
 ---
 
-## 🚀 Deployment Guide
+## Deployment Guide
 
 ### 1. Google Cloud Environment Setup
 Authenticate your local terminal and prepare your GCP project:
@@ -106,7 +106,7 @@ Once executed, any push to the `main` branch will automatically trigger the `.gi
 
 ---
 
-## 🔌 Client Configuration
+## Client Configuration
 
 To connect this remote MCP server to your local Gemini CLI environment, add your live Cloud Run endpoint to your local settings.
 
