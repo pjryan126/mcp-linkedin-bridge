@@ -9,7 +9,7 @@ on:
       - 'terraform/**'
       - '.github/workflows/**'
   workflow_dispatch: 
-    
+
 env:
   PROJECT_ID: mcp-linkedin-bridge
   REGION: us-central1
@@ -56,7 +56,7 @@ jobs:
       
       - name: Terraform Init 
         working-directory: ./terraform
-        run: terraform Init
+        run: terraform init
       
       - name: Terraform Apply
         working-directory: ./terraform
