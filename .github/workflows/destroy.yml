@@ -1,0 +1,42 @@
+name: Teardown Infrastructure
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    id-token: write
+
+env:
+    PROJECT_ID: mcp-linkedin-bridge
+    PROJECT_NUMBER: 571034539940
+    GH_SA: github-actions-sa
+    WIF_POOL: github-actions-pool
+    WIF_PROVIDER: github-provider
+
+jobs:
+    terraform-destroy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+            
+            - name: Authenticate to Google Cloud
+              id: auth
+              uses: google-github-actions/auth@v2
+              with:
+                workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.WIF_POOL }}/providers/${{ env.WIF_PROVIDER }}
+                service_account: ${{ env.GH_SA }}@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+            
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v3
+
+            - name: Terraform Init
+              run: |
+                cd terraform/
+                terraform init
+            
+            - name: Terraform Destroy
+              run: |
+                cd terraform/
+                terrafrom destroy -auto-approve
