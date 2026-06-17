@@ -39,4 +39,4 @@ jobs:
             - name: Terraform Destroy
               run: |
                 cd terraform/
-                terraform destroy -auto-approve -input=false -var=${{ env.PROJECT_ID}}
+                terraform destroy -auto-approve -input=false -var="project_id=${{ env.PROJECT_ID}}"
